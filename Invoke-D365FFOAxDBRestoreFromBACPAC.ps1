@@ -4,13 +4,13 @@
 #https://github.com/valerymoskalenko/D365FFO-PowerShell-scripts/blob/master/Invoke-D365FFOAxDBRestoreFromBACPAC.ps1
 
 #If you are going to download BACPAC file from the LCS Asset Library, please use in this section
-$BacpacSasLinkFromLCS = 'https://uswedpl1catalog.blob.core.windows.net/product-financeandoperations/000f0000-1111-2222-3333-b0000280893a/FinanceandOperations-AX7ProductVersion-17-b89a7d24-1111-2222-3333-ecfe94e9ea9f-8fffcb0a-5555-6666-7777-b0000280893a?sv=2015-12-11&sr=b&sig=rTGkfdfIIJyv0EBl%2FlIiugN3567745674567xMrrmkAE%3D&se=2021-01-26T09%3A51%3A27Z&sp=r'
-$NewDB = 'CTS_20210122' #Database name. No spaces in the name!
-$TempFolder = 'd:\temp\' # 'c:\temp\'  #$env:TEMP
+#$BacpacSasLinkFromLCS = 'https://uswedpl1catalog.blob.core.windows.net/product-financeandoperations/000f0000-1111-2222-3333-b0000280893a/FinanceandOperations-AX7ProductVersion-17-b89a7d24-1111-2222-3333-ecfe94e9ea9f-8fffcb0a-5555-6666-7777-b0000280893a?sv=2015-12-11&sr=b&sig=rTGkfdfIIJyv0EBl%2FlIiugN3567745674567xMrrmkAE%3D&se=2021-01-26T09%3A51%3A27Z&sp=r'
+#$NewDB = 'CTS_20210122' #Database name. No spaces in the name!
+#$TempFolder = 'd:\temp\' # 'c:\temp\'  #$env:TEMP
 
 #If you are NOT going to download BACPAC file from the LCS Asset Library, please use in this section
 #$BacpacSasLinkFromLCS = ''
-#$f = Get-ChildItem D:\temp\SandboxTest-20200130.bacpac  #Please note that this file should be accessible from SQL server service account
+$f = Get-ChildItem D:\temp\lcsbackup.bacpac  #Please note that this file should be accessible from SQL server service account
 #$NewDB = $($f.BaseName).Replace(' ','_'); #'AxDB_CTS1005BU2'  #Temporary Database name for new AxDB. Use a file name or any meaningful name.
 
 #############################################
@@ -84,10 +84,10 @@ Write-Host "Enable all users except Guest" -ForegroundColor Yellow
 Invoke-DbaQuery -SqlInstance localhost -Database AxDB -Query "Update USERINFO set ENABLE = 1 where ID != 'Guest'"
 
 ## Set DB Recovery Model to Simple  (Optional)
-#Set-DbaDbRecoveryModel -SqlInstance localhost -RecoveryModel Simple -Database AxDB -Confirm:$false
+Set-DbaDbRecoveryModel -SqlInstance localhost -RecoveryModel Simple -Database AxDB -Confirm:$false
 
 ## Enable SQL Change Tracking
-#---MT I am not sure we need this. Write-Host "Enabling SQL Change Tracking" -ForegroundColor Yellow
+#Write-Host "Enabling SQL Change Tracking" -ForegroundColor Yellow
 #Invoke-DbaQuery -SqlInstance localhost -Database AxDB -Query "ALTER DATABASE AxDB SET CHANGE_TRACKING = ON (CHANGE_RETENTION = 6 DAYS, AUTO_CLEANUP = ON)"
 
 ## Truncate System tables. Values there will be re-created after AOS start
@@ -103,16 +103,16 @@ TRUNCATE TABLE BATCHSERVERGROUP
 Invoke-DbaQuery -SqlInstance localhost -Database AxDB -Query $sqlSysTablesTruncate
 
 ## Clean up Power BI settings
-Write-Host "Cleaning up Power BI settings" -ForegroundColor Yellow
-Invoke-DbaQuery -SqlInstance localhost -Database AxDB -Query "UPDATE PowerBIConfig set CLIENTID = '', APPLICATIONKEY = '', REDIRECTURL = ''"
+#Write-Host "Cleaning up Power BI settings" -ForegroundColor Yellow
+#Invoke-DbaQuery -SqlInstance localhost -Database AxDB -Query "UPDATE PowerBIConfig set CLIENTID = '', APPLICATIONKEY = '', REDIRECTURL = ''"
 
 ## Run Database Sync
 Write-Host "Executing Database Sync" -ForegroundColor Yellow
 Invoke-D365DBSync -ShowOriginalProgress -Verbose
 
 ## Backup AxDB database
-Write-Host "Backup AxDB" -ForegroundColor Yellow
-Backup-DbaDatabase -SqlInstance localhost -Database AxDB -Type Full -CompressBackup -BackupFileName "dbname-$NewDB-backuptype-timestamp.bak" -ReplaceInName
+#Write-Host "Backup AxDB" -ForegroundColor Yellow
+#Backup-DbaDatabase -SqlInstance localhost -Database AxDB -Type Full -CompressBackup -BackupFileName "dbname-$NewDB-backuptype-timestamp.bak" -ReplaceInName
 
 
 ## Promote user as admin and set default tenant  (Optional)
@@ -123,14 +123,14 @@ Write-Host "Starting D365FO environment. Then open UI and refresh Data Entities.
 Start-D365Environment
 
 ## INFO: get User email address/tenant
-Write-Host "Getting information about users from AxDB" -ForegroundColor Yellow
-$sqlGetUsers = @"
-select ID, Name, NetworkAlias, NETWORKDOMAIN, Enable from userInfo
-where NETWORKALIAS not like '%@contosoax7.onmicrosoft.com'
-  and NETWORKALIAS not like '%@capintegration01.onmicrosoft.com'
-  and NETWORKALIAS not like '%@devtesttie.ccsctp.net'
-  and NETWORKALIAS not like '%@DAXMDSRunner.com'
-  and NETWORKALIAS not like '%@dynamics.com'
-  and NETWORKALIAS != ''
-"@
-Invoke-DbaQuery -SqlInstance localhost -Database AxDB -Query $sqlGetUsers | FT
+#Write-Host "Getting information about users from AxDB" -ForegroundColor Yellow
+#$sqlGetUsers = @"
+#select ID, Name, NetworkAlias, NETWORKDOMAIN, Enable from userInfo
+#where NETWORKALIAS not like '%@contosoax7.onmicrosoft.com'
+#  and NETWORKALIAS not like '%@capintegration01.onmicrosoft.com'
+#  and NETWORKALIAS not like '%@devtesttie.ccsctp.net'
+#  and NETWORKALIAS not like '%@DAXMDSRunner.com'
+#  and NETWORKALIAS not like '%@dynamics.com'
+#  and NETWORKALIAS != ''
+#"@
+#Invoke-DbaQuery -SqlInstance localhost -Database AxDB -Query $sqlGetUsers | FT
