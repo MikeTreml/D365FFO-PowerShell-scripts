@@ -9,9 +9,9 @@
 #$TempFolder = 'd:\temp\' # 'c:\temp\'  #$env:TEMP
 
 #If you are NOT going to download BACPAC file from the LCS Asset Library, please use in this section
-#$BacpacSasLinkFromLCS = ''
+$BacpacSasLinkFromLCS = ''
 $f = Get-ChildItem D:\temp\lcsbackup.bacpac  #Please note that this file should be accessible from SQL server service account
-#$NewDB = $($f.BaseName).Replace(' ','_'); #'AxDB_CTS1005BU2'  #Temporary Database name for new AxDB. Use a file name or any meaningful name.
+$NewDB = $($f.BaseName).Replace(' ','_'); #'AxDB_CTS1005BU2'  #Temporary Database name for new AxDB. Use a file name or any meaningful name.
 
 #############################################
 $ErrorActionPreference = "Stop"
