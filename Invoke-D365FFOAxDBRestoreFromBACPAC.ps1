@@ -87,8 +87,8 @@ Invoke-DbaQuery -SqlInstance localhost -Database AxDB -Query "Update USERINFO se
 #Set-DbaDbRecoveryModel -SqlInstance localhost -RecoveryModel Simple -Database AxDB -Confirm:$false
 
 ## Enable SQL Change Tracking
-Write-Host "Enabling SQL Change Tracking" -ForegroundColor Yellow
-Invoke-DbaQuery -SqlInstance localhost -Database AxDB -Query "ALTER DATABASE AxDB SET CHANGE_TRACKING = ON (CHANGE_RETENTION = 6 DAYS, AUTO_CLEANUP = ON)"
+#---MT I am not sure we need this. Write-Host "Enabling SQL Change Tracking" -ForegroundColor Yellow
+#Invoke-DbaQuery -SqlInstance localhost -Database AxDB -Query "ALTER DATABASE AxDB SET CHANGE_TRACKING = ON (CHANGE_RETENTION = 6 DAYS, AUTO_CLEANUP = ON)"
 
 ## Truncate System tables. Values there will be re-created after AOS start
 Write-Host "Truncating System tables. Values there will be re-created after AOS start" -ForegroundColor Yellow
